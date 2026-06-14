@@ -105,3 +105,41 @@ export interface PriceReferenceFilters {
   source: PriceSource;
   sortBy: 'recent' | 'helpful' | 'priceLow' | 'priceHigh';
 }
+
+export type BlacklistReason =
+  | '乱收费'
+  | '没修好还删微信'
+  | '态度恶劣'
+  | '不专业'
+  | '加价'
+  | '其他';
+
+export interface BlacklistReport {
+  id: string;
+  blacklistEntryId: string;
+  reporterNickname: string;
+  isAnonymous: boolean;
+  reasons: BlacklistReason[];
+  description: string;
+  createdAt: string;
+}
+
+export interface BlacklistEntry {
+  id: string;
+  providerName: string;
+  providerPhone: string;
+  serviceTypes: ServiceType[];
+  region: string;
+  reportCount: number;
+  isPublic: boolean;
+  reports: BlacklistReport[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BlacklistFilters {
+  serviceType: ServiceType | 'all';
+  searchQuery: string;
+  sortBy: 'reportCount' | 'recent';
+  showPending: boolean;
+}

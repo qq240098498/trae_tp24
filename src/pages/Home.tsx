@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Provider, ServiceRecord } from '@/types';
+import type { Provider, ServiceRecord, BlacklistEntry } from '@/types';
 import { useProviderStore } from '@/store/useProviderStore';
 import { usePriceStore } from '@/store/usePriceStore';
+import { useBlacklistStore } from '@/store/useBlacklistStore';
 import { Header, ViewMode } from '@/components/Header';
 import { FilterBar } from '@/components/FilterBar';
 import { ProviderList } from '@/components/ProviderList';
@@ -16,10 +17,14 @@ import { PriceFilterBar } from '@/components/PriceFilterBar';
 import { PriceReferenceList } from '@/components/PriceReferenceList';
 import { PriceReferenceForm } from '@/components/PriceReferenceForm';
 import { PriceTip } from '@/components/PriceTip';
+import { BlacklistFilterBar } from '@/components/BlacklistFilterBar';
+import { BlacklistList } from '@/components/BlacklistList';
+import { BlacklistForm } from '@/components/BlacklistForm';
 
 export default function Home() {
   const { init, providers, searchQuery } = useProviderStore();
   const { init: initPriceStore } = usePriceStore();
+  const { init: initBlacklistStore } = useBlacklistStore();
   const [viewMode, setViewMode] = useState<ViewMode>('providers');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -27,17 +32,20 @@ export default function Home() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isServiceRecordOpen, setIsServiceRecordOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
+  const [isBlacklistFormOpen, setIsBlacklistFormOpen] = useState(false);
 
   const [editProvider, setEditProvider] = useState<Provider | null>(null);
   const [reviewProvider, setReviewProvider] = useState<Provider | null>(null);
   const [detailProvider, setDetailProvider] = useState<Provider | null>(null);
   const [serviceRecordProvider, setServiceRecordProvider] = useState<Provider | null>(null);
   const [editServiceRecord, setEditServiceRecord] = useState<ServiceRecord | null>(null);
+  const [reportBlacklistEntry, setReportBlacklistEntry] = useState<BlacklistEntry | null>(null);
 
   useEffect(() => {
     init();
     initPriceStore();
-  }, [init, initPriceStore]);
+    initBlacklistStore();
+  }, [init, initPriceStore, initBlacklistStore]);
 
   const emergencyContacts = useMemo(() => {
     let list = providers.filter((p) => p.emergency?.isEmergency);
@@ -57,6 +65,11 @@ export default function Home() {
 
   const handleAddPriceClick = () => {
     setIsPriceFormOpen(true);
+  };
+
+  const handleAddBlacklistClick = () => {
+    setReportBlacklistEntry(null);
+    setIsBlacklistFormOpen(true);
   };
 
   const handleViewPriceReferences = () => {
@@ -110,6 +123,7 @@ export default function Home() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onAddPriceClick={handleAddPriceClick}
+        onAddBlacklistClick={handleAddBlacklistClick}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -173,7 +187,7 @@ export default function Home() {
                 onAddServiceRecord={handleServiceRecordClick}
               />
             </motion.div>
-          ) : (
+          ) : viewMode === 'prices' ? (
             <motion.div
               key="prices"
               initial={{ opacity: 0, x: 20 }}
@@ -220,6 +234,54 @@ export default function Home() {
 
               <PriceFilterBar />
               <PriceReferenceList />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="blacklist"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="mb-6 p-5 bg-gradient-to-r from-red-50 via-rose-50 to-orange-50 rounded-2xl border border-red-100"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+              >
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-[280px]">
+                    <h2
+                      className="text-lg font-bold text-gray-900 mb-2"
+                      style={{ fontFamily: '"Noto Serif SC", serif' }}
+                    >
+                      ⚠️ 小区共享黑名单
+                    </h2>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      收录被多位邻居举报的不良服务商，帮助大家避坑。
+                      黑名单需经多人举报才对外展示，减少恶意差评。
+                      如您也遇到过问题，欢迎匿名举报补充。
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-red-600">
+                        {useBlacklistStore.getState().entries.filter((e) => e.isPublic).length}
+                      </div>
+                      <div className="text-xs text-gray-500">条已公示</div>
+                    </div>
+                    <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-amber-600">
+                        {useBlacklistStore.getState().entries.filter((e) => !e.isPublic).length}
+                      </div>
+                      <div className="text-xs text-gray-500">条待公示</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <BlacklistFilterBar />
+              <BlacklistList />
             </motion.div>
           )}
         </AnimatePresence>
@@ -273,6 +335,15 @@ export default function Home() {
         onClose={() => {
           setIsPriceFormOpen(false);
         }}
+      />
+
+      <BlacklistForm
+        isOpen={isBlacklistFormOpen}
+        onClose={() => {
+          setIsBlacklistFormOpen(false);
+          setReportBlacklistEntry(null);
+        }}
+        existingEntry={reportBlacklistEntry}
       />
     </div>
   );

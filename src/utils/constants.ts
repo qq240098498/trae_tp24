@@ -1,4 +1,4 @@
-import type { ServiceType, ReviewTag, ServiceTypeConfig, ServiceRecord, PriceReference } from '@/types';
+import type { ServiceType, ReviewTag, ServiceTypeConfig, ServiceRecord, PriceReference, BlacklistReason, BlacklistEntry } from '@/types';
 
 export const SERVICE_TYPE_CONFIG: Record<ServiceType, ServiceTypeConfig> = {
   plumber: { label: '水电工', icon: 'Wrench', color: '#3B82F6' },
@@ -26,8 +26,22 @@ export const STORAGE_KEYS = {
   PRICE_REFERENCES: 'repair_price_references',
   USER_NICKNAME: 'repair_user_nickname',
   VOTED_PRICES: 'repair_voted_prices',
+  BLACKLIST: 'repair_blacklist',
+  BLACKLIST_REPORTS: 'repair_blacklist_reports',
+  REPORTED_BLACKLIST: 'repair_reported_blacklist',
   VERSION: 'repair_data_version',
 };
+
+export const BLACKLIST_REASONS: BlacklistReason[] = [
+  '乱收费',
+  '没修好还删微信',
+  '态度恶劣',
+  '不专业',
+  '加价',
+  '其他',
+];
+
+export const BLACKLIST_PUBLIC_THRESHOLD = 3;
 
 export const DATA_VERSION = 4;
 
@@ -420,5 +434,137 @@ export const MOCK_REVIEWS = [
     tags: ['收费贵', '不专业'] as ReviewTag[],
     comment: '通了两次才通好，价格有点高',
     createdAt: '2024-04-01T09:00:00Z',
+  },
+];
+
+export const MOCK_BLACKLIST_ENTRIES: BlacklistEntry[] = [
+  {
+    id: 'bl1',
+    providerName: '李师傅（伪冒）',
+    providerPhone: '13900139999',
+    serviceTypes: ['plumber', 'appliance'],
+    region: '北京朝阳区',
+    reportCount: 5,
+    isPublic: true,
+    reports: [
+      {
+        id: 'blr1',
+        blacklistEntryId: 'bl1',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['乱收费', '没修好还删微信'],
+        description: '修水管没修好，要价500，第二天漏水再打电话直接把我微信删了',
+        createdAt: '2024-05-10T10:00:00Z',
+      },
+      {
+        id: 'blr2',
+        blacklistEntryId: 'bl1',
+        reporterNickname: '被坑过的业主',
+        isAnonymous: false,
+        reasons: ['乱收费', '不专业'],
+        description: '上门说要换零件收费800，后来找正规师傅一看只是螺丝松了',
+        createdAt: '2024-05-15T14:30:00Z',
+      },
+      {
+        id: 'blr3',
+        blacklistEntryId: 'bl1',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['加价'],
+        description: '上门前说200，到了说情况复杂要加钱到600',
+        createdAt: '2024-06-01T09:00:00Z',
+      },
+      {
+        id: 'blr4',
+        blacklistEntryId: 'bl1',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['态度恶劣'],
+        description: '修不好还发脾气，说我们家东西太老了',
+        createdAt: '2024-06-05T16:00:00Z',
+      },
+      {
+        id: 'blr5',
+        blacklistEntryId: 'bl1',
+        reporterNickname: '小心为上',
+        isAnonymous: false,
+        reasons: ['没修好还删微信'],
+        description: '约好时间不来，打电话不接，微信也不回',
+        createdAt: '2024-06-10T11:00:00Z',
+      },
+    ],
+    createdAt: '2024-05-10T10:00:00Z',
+    updatedAt: '2024-06-10T11:00:00Z',
+  },
+  {
+    id: 'bl2',
+    providerName: '快速开锁王',
+    providerPhone: '13700137777',
+    serviceTypes: ['locksmith'],
+    region: '上海浦东新区',
+    reportCount: 3,
+    isPublic: true,
+    reports: [
+      {
+        id: 'blr6',
+        blacklistEntryId: 'bl2',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['乱收费', '加价'],
+        description: '电话里说150，上门说锁特殊要300，不开也收上门费100',
+        createdAt: '2024-04-20T08:00:00Z',
+      },
+      {
+        id: 'blr7',
+        blacklistEntryId: 'bl2',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['不专业'],
+        description: '开锁把我门锁搞坏了，还说是我锁的问题',
+        createdAt: '2024-05-05T12:00:00Z',
+      },
+      {
+        id: 'blr8',
+        blacklistEntryId: 'bl2',
+        reporterNickname: '业主小王',
+        isAnonymous: false,
+        reasons: ['态度恶劣', '乱收费'],
+        description: '态度很差，像欠他钱似的，收费还特别贵',
+        createdAt: '2024-05-20T19:00:00Z',
+      },
+    ],
+    createdAt: '2024-04-20T08:00:00Z',
+    updatedAt: '2024-05-20T19:00:00Z',
+  },
+  {
+    id: 'bl3',
+    providerName: '空调维修小张',
+    providerPhone: '13600136666',
+    serviceTypes: ['aircon'],
+    region: '广州天河区',
+    reportCount: 2,
+    isPublic: false,
+    reports: [
+      {
+        id: 'blr9',
+        blacklistEntryId: 'bl3',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['乱收费'],
+        description: '加氟说要300，后来才知道正常只要200',
+        createdAt: '2024-06-01T15:00:00Z',
+      },
+      {
+        id: 'blr10',
+        blacklistEntryId: 'bl3',
+        reporterNickname: '匿名用户',
+        isAnonymous: true,
+        reasons: ['不专业'],
+        description: '说我空调压缩机坏了要换，花了800，结果还是不制冷',
+        createdAt: '2024-06-08T10:00:00Z',
+      },
+    ],
+    createdAt: '2024-06-01T15:00:00Z',
+    updatedAt: '2024-06-08T10:00:00Z',
   },
 ];

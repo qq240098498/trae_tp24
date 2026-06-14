@@ -1,20 +1,23 @@
-import { Wrench, Plus, Download, Upload, DollarSign, Users } from 'lucide-react';
+import { Wrench, Plus, Download, Upload, DollarSign, Users, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useProviderStore } from '@/store/useProviderStore';
 import { usePriceStore } from '@/store/usePriceStore';
+import { useBlacklistStore } from '@/store/useBlacklistStore';
 
-export type ViewMode = 'providers' | 'prices';
+export type ViewMode = 'providers' | 'prices' | 'blacklist';
 
 interface HeaderProps {
   onAddClick: () => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onAddPriceClick: () => void;
+  onAddBlacklistClick: () => void;
 }
 
-export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick }: HeaderProps) => {
+export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick, onAddBlacklistClick }: HeaderProps) => {
   const { exportData, importData } = useProviderStore();
   const { priceReferences } = usePriceStore();
+  const { entries: blacklistEntries } = useBlacklistStore();
 
   const handleExport = () => {
     const data = exportData();
@@ -112,6 +115,30 @@ export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick
                 </span>
               )}
             </motion.button>
+            <motion.button
+              onClick={() => onViewModeChange('blacklist')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all relative ${
+                viewMode === 'blacklist'
+                  ? 'bg-white text-red-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <AlertTriangle size={16} />
+              <span>黑名单</span>
+              {blacklistEntries.filter((e) => e.isPublic).length > 0 && (
+                <span
+                  className={`absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center text-[10px] font-bold rounded-full ${
+                    viewMode === 'blacklist' ? 'bg-red-500 text-white' : 'bg-red-500 text-white'
+                  }`}
+                >
+                  {blacklistEntries.filter((e) => e.isPublic).length > 99
+                    ? '99+'
+                    : blacklistEntries.filter((e) => e.isPublic).length}
+                </span>
+              )}
+            </motion.button>
           </motion.div>
 
           <motion.div
@@ -149,7 +176,7 @@ export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick
                 <span className="hidden sm:inline">添加服务商</span>
                 <span className="sm:hidden">添加</span>
               </motion.button>
-            ) : (
+            ) : viewMode === 'prices' ? (
               <motion.button
                 onClick={onAddPriceClick}
                 className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
@@ -159,6 +186,17 @@ export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick
                 <Plus size={18} />
                 <span className="hidden sm:inline">添加价格</span>
                 <span className="sm:hidden">添加</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={onAddBlacklistClick}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <AlertTriangle size={18} />
+                <span className="hidden sm:inline">举报踩雷</span>
+                <span className="sm:hidden">举报</span>
               </motion.button>
             )}
           </motion.div>
