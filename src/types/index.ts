@@ -72,7 +72,7 @@ export interface ServiceRecord {
 }
 
 export const SERVICE_STATUS_CONFIG: Record<ServiceStatus, { label: string; color: string; bg: string }> = {
-  completed: { label: '已完成', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  completed: { label: '已完成', color: ' text-emerald-700', bg: 'bg-emerald-100' },
   in_progress: { label: '进行中', color: 'text-blue-700', bg: 'bg-blue-100' },
   scheduled: { label: '已预约', color: 'text-amber-700', bg: 'bg-amber-100' },
   cancelled: { label: '已取消', color: 'text-gray-700', bg: 'bg-gray-100' },

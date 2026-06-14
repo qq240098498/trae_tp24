@@ -13,7 +13,7 @@ import { ServiceRecordForm } from '@/components/ServiceRecordForm';
 import { EmergencyDialButton } from '@/components/EmergencyDialButton';
 
 export default function Home() {
-  const { init, providers } = useProviderStore();
+  const { init, providers, searchQuery } = useProviderStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -29,8 +29,15 @@ export default function Home() {
   }, [init]);
 
   const emergencyContacts = useMemo(() => {
-    return providers.filter((p) => p.emergency?.isEmergency);
-  }, [providers]);
+    let list = providers.filter((p) => p.emergency?.isEmergency);
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      list = list.filter(
+        (p) => p.name.toLowerCase().includes(query) || p.phone.includes(query)
+      );
+    }
+    return list;
+  }, [providers, searchQuery]);
 
   const handleAddClick = () => {
     setEditProvider(null);
