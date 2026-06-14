@@ -15,6 +15,12 @@ export type ReviewTag =
   | '乱收费'
   | '准时';
 
+export interface EmergencyContactConfig {
+  isEmergency: boolean;
+  is24Hours: boolean;
+  emergencyNote: string;
+}
+
 export interface Provider {
   id: string;
   name: string;
@@ -24,6 +30,7 @@ export interface Provider {
   hasInvoice: boolean;
   avgRating: number;
   reviewCount: number;
+  emergency: EmergencyContactConfig;
   createdAt: string;
   updatedAt: string;
 }

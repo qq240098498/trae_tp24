@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Phone, Clock, AlertCircle } from 'lucide-react';
 import type { Provider, ServiceType } from '@/types';
 import { SERVICE_TYPE_CONFIG } from '@/utils/constants';
 import { useProviderStore } from '@/store/useProviderStore';
@@ -18,6 +19,9 @@ interface FormData {
   serviceTypes: ServiceType[];
   doorFee: string;
   hasInvoice: boolean;
+  isEmergency: boolean;
+  is24Hours: boolean;
+  emergencyNote: string;
 }
 
 const initialFormData: FormData = {
@@ -26,6 +30,9 @@ const initialFormData: FormData = {
   serviceTypes: [],
   doorFee: '',
   hasInvoice: false,
+  isEmergency: false,
+  is24Hours: false,
+  emergencyNote: '',
 };
 
 export const ProviderForm = ({ isOpen, onClose, editProvider }: ProviderFormProps) => {
@@ -41,6 +48,9 @@ export const ProviderForm = ({ isOpen, onClose, editProvider }: ProviderFormProp
         serviceTypes: editProvider.serviceTypes,
         doorFee: editProvider.doorFee?.toString() || '',
         hasInvoice: editProvider.hasInvoice,
+        isEmergency: editProvider.emergency?.isEmergency || false,
+        is24Hours: editProvider.emergency?.is24Hours || false,
+        emergencyNote: editProvider.emergency?.emergencyNote || '',
       });
     } else {
       setFormData(initialFormData);
@@ -80,6 +90,11 @@ export const ProviderForm = ({ isOpen, onClose, editProvider }: ProviderFormProp
       serviceTypes: formData.serviceTypes,
       doorFee: formData.doorFee ? Number(formData.doorFee) : null,
       hasInvoice: formData.hasInvoice,
+      emergency: {
+        isEmergency: formData.isEmergency,
+        is24Hours: formData.is24Hours,
+        emergencyNote: formData.emergencyNote.trim(),
+      },
     };
 
     if (editProvider) {
@@ -212,6 +227,87 @@ export const ProviderForm = ({ isOpen, onClose, editProvider }: ProviderFormProp
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             />
           </motion.button>
+        </div>
+
+        <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertCircle className="text-red-500" size={20} />
+            <span className="font-medium text-red-700">紧急联系设置</span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-700">设为紧急联系人</p>
+                <p className="text-sm text-gray-500">首页将显示一键拨号按钮</p>
+              </div>
+              <motion.button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, isEmergency: !prev.isEmergency }))}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  formData.isEmergency ? 'bg-red-500' : 'bg-gray-300'
+                }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.div
+                  className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                  animate={{ x: formData.isEmergency ? 26 : 2 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              </motion.button>
+            </div>
+
+            {formData.isEmergency && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 pt-4 border-t border-red-100"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="text-gray-500" size={18} />
+                    <div>
+                      <p className="font-medium text-gray-700">24小时服务</p>
+                      <p className="text-sm text-gray-500">标注为全天候服务</p>
+                    </div>
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, is24Hours: !prev.is24Hours }))}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
+                      formData.is24Hours ? 'bg-red-500' : 'bg-gray-300'
+                    }`}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                      animate={{ x: formData.is24Hours ? 26 : 2 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  </motion.button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Phone size={14} className="text-gray-500" />
+                      紧急时段说明
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.emergencyNote}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, emergencyNote: e.target.value }));
+                    }}
+                    placeholder="如：晚上10点后能接电话、仅限白天等"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4">

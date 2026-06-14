@@ -14,7 +14,7 @@ interface ProviderState {
   setFilterType: (type: ServiceType | 'all') => void;
   setSearchQuery: (query: string) => void;
   setSortBy: (sort: 'rating' | 'date') => void;
-  addProvider: (data: Omit<Provider, 'id' | 'avgRating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) => void;
+  addProvider: (data: Omit<Provider, 'id' | 'avgRating' | 'reviewCount' | 'emergency' | 'createdAt' | 'updatedAt'> & { emergency?: Partial<Provider['emergency']> }) => void;
   updateProvider: (id: string, data: Partial<Provider>) => void;
   deleteProvider: (id: string) => void;
   addReview: (providerId: string, data: Omit<Review, 'id' | 'providerId' | 'createdAt'>) => void;
@@ -93,6 +93,12 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
       id: generateId(),
       avgRating: 0,
       reviewCount: 0,
+      emergency: {
+        isEmergency: false,
+        is24Hours: false,
+        emergencyNote: '',
+        ...data.emergency,
+      },
       createdAt: now,
       updatedAt: now,
     };

@@ -26,7 +26,7 @@ export const STORAGE_KEYS = {
   VERSION: 'repair_data_version',
 };
 
-export const DATA_VERSION = 2;
+export const DATA_VERSION = 3;
 
 export const MOCK_SERVICE_RECORDS: ServiceRecord[] = [
   {
@@ -149,6 +149,11 @@ export const MOCK_PROVIDERS = [
     hasInvoice: false,
     avgRating: 4.5,
     reviewCount: 2,
+    emergency: {
+      isEmergency: false,
+      is24Hours: false,
+      emergencyNote: '',
+    },
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-20T14:30:00Z',
   },
@@ -161,6 +166,11 @@ export const MOCK_PROVIDERS = [
     hasInvoice: true,
     avgRating: 4.0,
     reviewCount: 1,
+    emergency: {
+      isEmergency: false,
+      is24Hours: false,
+      emergencyNote: '',
+    },
     createdAt: '2024-02-10T09:00:00Z',
     updatedAt: '2024-02-10T09:00:00Z',
   },
@@ -173,6 +183,11 @@ export const MOCK_PROVIDERS = [
     hasInvoice: false,
     avgRating: 5.0,
     reviewCount: 3,
+    emergency: {
+      isEmergency: true,
+      is24Hours: true,
+      emergencyNote: '晚上10点后也能接电话',
+    },
     createdAt: '2024-03-05T16:00:00Z',
     updatedAt: '2024-03-15T11:00:00Z',
   },
@@ -185,6 +200,11 @@ export const MOCK_PROVIDERS = [
     hasInvoice: true,
     avgRating: 3.5,
     reviewCount: 1,
+    emergency: {
+      isEmergency: true,
+      is24Hours: false,
+      emergencyNote: '晚上10点前可上门',
+    },
     createdAt: '2024-04-01T08:00:00Z',
     updatedAt: '2024-04-01T08:00:00Z',
   },

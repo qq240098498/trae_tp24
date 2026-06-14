@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Phone, Receipt, MapPin, FileText, Wrench } from 'lucide-react';
+import { Phone, Receipt, MapPin, FileText, Wrench, AlertTriangle, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Provider } from '@/types';
 import { useProviderStore } from '@/store/useProviderStore';
@@ -40,13 +40,27 @@ export const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <h3
-              className="text-lg font-bold text-gray-900 group-hover:text-orange-500 transition-colors cursor-pointer"
-              onClick={() => onViewDetail(provider)}
-              style={{ fontFamily: '"Noto Serif SC", serif' }}
-            >
-              {provider.name}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3
+                className="text-lg font-bold text-gray-900 group-hover:text-orange-500 transition-colors cursor-pointer"
+                onClick={() => onViewDetail(provider)}
+                style={{ fontFamily: '"Noto Serif SC", serif' }}
+              >
+                {provider.name}
+              </h3>
+              {provider.emergency?.isEmergency && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">
+                  <AlertTriangle size={12} />
+                  紧急
+                </span>
+              )}
+              {provider.emergency?.is24Hours && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
+                  <Clock size={12} />
+                  24H
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1">
                 <StarRating rating={provider.avgRating} readonly size="sm" />
@@ -75,6 +89,15 @@ export const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(
             )}
           </div>
         </div>
+
+        {provider.emergency?.emergencyNote && provider.emergency.isEmergency && (
+          <div className="mb-4 p-2 bg-red-50 rounded-lg border border-red-100">
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertTriangle size={12} />
+              {provider.emergency.emergencyNote}
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           {provider.serviceTypes.map((type) => (

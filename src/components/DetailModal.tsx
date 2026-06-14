@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Receipt, MapPin, Calendar, Trash2, Edit, MessageSquare, Wrench, FileText } from 'lucide-react';
+import { Phone, Receipt, MapPin, Calendar, Trash2, Edit, MessageSquare, Wrench, FileText, AlertTriangle, Clock } from 'lucide-react';
 import type { Provider, Review, ServiceRecord } from '@/types';
 import { useProviderStore } from '@/store/useProviderStore';
 import { Modal } from './Modal';
@@ -153,6 +153,28 @@ export const DetailModal = ({
               </p>
             </div>
           </div>
+
+          {provider.emergency?.isEmergency && (
+            <div className="sm:col-span-2 flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-100">
+              <div className="p-2.5 bg-red-500 rounded-lg shadow-sm">
+                <AlertTriangle size={20} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs text-gray-500">紧急联系人</p>
+                  {provider.emergency.is24Hours && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded">
+                      <Clock size={10} />
+                      24小时服务
+                    </span>
+                  )}
+                </div>
+                <p className="font-semibold text-red-700">
+                  {provider.emergency.emergencyNote || '已设为紧急联系人'}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="pt-4 border-t border-gray-100">
