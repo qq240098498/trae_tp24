@@ -77,3 +77,31 @@ export const SERVICE_STATUS_CONFIG: Record<ServiceStatus, { label: string; color
   scheduled: { label: '已预约', color: 'text-amber-700', bg: 'bg-amber-100' },
   cancelled: { label: '已取消', color: 'text-gray-700', bg: 'bg-gray-100' },
 };
+
+export type PriceSource = 'local' | 'community' | 'both';
+
+export interface PriceReference {
+  id: string;
+  itemName: string;
+  serviceType: ServiceType;
+  minPrice: number;
+  maxPrice: number;
+  unit: string;
+  description: string;
+  region: string;
+  source: PriceSource;
+  isAnonymous: boolean;
+  contributorNickname: string;
+  helpfulCount: number;
+  unhelpfulCount: number;
+  verificationCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PriceReferenceFilters {
+  serviceType: ServiceType | 'all';
+  searchQuery: string;
+  source: PriceSource;
+  sortBy: 'recent' | 'helpful' | 'priceLow' | 'priceHigh';
+}

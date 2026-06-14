@@ -1,13 +1,20 @@
-import { Wrench, Plus, Download, Upload } from 'lucide-react';
+import { Wrench, Plus, Download, Upload, DollarSign, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useProviderStore } from '@/store/useProviderStore';
+import { usePriceStore } from '@/store/usePriceStore';
+
+export type ViewMode = 'providers' | 'prices';
 
 interface HeaderProps {
   onAddClick: () => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  onAddPriceClick: () => void;
 }
 
-export const Header = ({ onAddClick }: HeaderProps) => {
+export const Header = ({ onAddClick, viewMode, onViewModeChange, onAddPriceClick }: HeaderProps) => {
   const { exportData, importData } = useProviderStore();
+  const { priceReferences } = usePriceStore();
 
   const handleExport = () => {
     const data = exportData();
@@ -46,7 +53,7 @@ export const Header = ({ onAddClick }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 flex-wrap gap-2">
           <motion.div
             className="flex items-center gap-3"
             initial={{ opacity: 0, x: -20 }}
@@ -62,6 +69,49 @@ export const Header = ({ onAddClick }: HeaderProps) => {
               </h1>
               <p className="text-xs text-gray-500">本地维修师傅管理工具</p>
             </div>
+          </motion.div>
+
+          <motion.div
+            className="flex items-center gap-1 bg-gray-100 rounded-xl p-1"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.05 }}
+          >
+            <motion.button
+              onClick={() => onViewModeChange('providers')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                viewMode === 'providers'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Users size={16} />
+              <span>服务商</span>
+            </motion.button>
+            <motion.button
+              onClick={() => onViewModeChange('prices')}
+              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all relative ${
+                viewMode === 'prices'
+                  ? 'bg-white text-emerald-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <DollarSign size={16} />
+              <span>价格参考</span>
+              {priceReferences.length > 0 && (
+                <span
+                  className={`absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center text-[10px] font-bold rounded-full ${
+                    viewMode === 'prices' ? 'bg-emerald-500 text-white' : 'bg-orange-500 text-white'
+                  }`}
+                >
+                  {priceReferences.length > 99 ? '99+' : priceReferences.length}
+                </span>
+              )}
+            </motion.button>
           </motion.div>
 
           <motion.div
@@ -88,15 +138,29 @@ export const Header = ({ onAddClick }: HeaderProps) => {
               <Download size={18} />
               <span className="hidden sm:inline">导出</span>
             </motion.button>
-            <motion.button
-              onClick={onAddClick}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Plus size={18} />
-              <span>添加服务商</span>
-            </motion.button>
+            {viewMode === 'providers' ? (
+              <motion.button
+                onClick={onAddClick}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Plus size={18} />
+                <span className="hidden sm:inline">添加服务商</span>
+                <span className="sm:hidden">添加</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={onAddPriceClick}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Plus size={18} />
+                <span className="hidden sm:inline">添加价格</span>
+                <span className="sm:hidden">添加</span>
+              </motion.button>
+            )}
           </motion.div>
         </div>
       </div>

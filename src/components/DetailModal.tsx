@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Receipt, MapPin, Calendar, Trash2, Edit, MessageSquare, Wrench, FileText, AlertTriangle, Clock } from 'lucide-react';
+import { Phone, Receipt, MapPin, Calendar, Trash2, Edit, MessageSquare, Wrench, FileText, AlertTriangle, Clock, DollarSign } from 'lucide-react';
 import type { Provider, Review, ServiceRecord } from '@/types';
 import { useProviderStore } from '@/store/useProviderStore';
 import { Modal } from './Modal';
@@ -8,6 +8,7 @@ import { StarRating } from './StarRating';
 import { ServiceTypeBadge } from './ServiceTypeBadge';
 import { TagSelector } from './TagSelector';
 import { ServiceRecordTimeline } from './ServiceRecordTimeline';
+import { PriceTip } from './PriceTip';
 
 interface DetailModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface DetailModalProps {
   onAddReview: (provider: Provider) => void;
   onAddServiceRecord: (provider: Provider) => void;
   onEditServiceRecord: (record: ServiceRecord) => void;
+  onViewPriceReferences?: () => void;
 }
 
 type TabType = 'reviews' | 'records';
@@ -29,6 +31,7 @@ export const DetailModal = ({
   onAddReview,
   onAddServiceRecord,
   onEditServiceRecord,
+  onViewPriceReferences,
 }: DetailModalProps) => {
   const { getReviewsByProvider, getServiceRecordsByProvider, deleteProvider } = useProviderStore();
   const [activeTab, setActiveTab] = useState<TabType>('records');
@@ -175,6 +178,23 @@ export const DetailModal = ({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="p-1.5 bg-emerald-100 rounded-lg">
+              <DollarSign size={14} className="text-emerald-600" />
+            </div>
+            <span className="font-medium text-gray-700">联系前参考 - 合理价格范围</span>
+            <span className="text-xs text-gray-400">避免被漫天要价</span>
+          </div>
+          {provider.serviceTypes.map((serviceType) => (
+            <PriceTip
+              key={serviceType}
+              serviceType={serviceType}
+              onViewAll={onViewPriceReferences}
+            />
+          ))}
         </div>
 
         <div className="pt-4 border-t border-gray-100">
