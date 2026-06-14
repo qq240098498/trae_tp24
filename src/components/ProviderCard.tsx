@@ -1,7 +1,8 @@
 import { forwardRef } from 'react';
-import { Phone, Receipt, MapPin } from 'lucide-react';
+import { Phone, Receipt, MapPin, FileText, Wrench } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Provider } from '@/types';
+import { useProviderStore } from '@/store/useProviderStore';
 import { StarRating } from './StarRating';
 import { ServiceTypeBadge } from './ServiceTypeBadge';
 
@@ -10,11 +11,15 @@ interface ProviderCardProps {
   onViewDetail: (provider: Provider) => void;
   onEdit: (provider: Provider) => void;
   onAddReview: (provider: Provider) => void;
+  onAddServiceRecord: (provider: Provider) => void;
   index: number;
 }
 
 export const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(
-  ({ provider, onViewDetail, onEdit, onAddReview, index }, ref) => {
+  ({ provider, onViewDetail, onEdit, onAddReview, onAddServiceRecord, index }, ref) => {
+    const { getServiceRecordsByProvider } = useProviderStore();
+    const serviceRecords = getServiceRecordsByProvider(provider.id);
+    const totalSpent = serviceRecords.reduce((sum, r) => sum + (r.totalFee || 0), 0);
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -42,9 +47,17 @@ export const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(
             >
               {provider.name}
             </h3>
-            <div className="flex items-center gap-1 mt-1">
-              <StarRating rating={provider.avgRating} readonly size="sm" />
-              <span className="text-xs text-gray-500">({provider.reviewCount}条评价)</span>
+            <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-1">
+                <StarRating rating={provider.avgRating} readonly size="sm" />
+                <span className="text-xs text-gray-500">({provider.reviewCount}评)</span>
+              </div>
+              {serviceRecords.length > 0 && (
+                <div className="flex items-center gap-1 text-xs text-blue-600">
+                  <Wrench size={12} />
+                  <span>{serviceRecords.length}次服务 · ¥{totalSpent}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -90,6 +103,15 @@ export const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <span className="text-xs text-gray-400">更新于 {formatDate(provider.updatedAt)}</span>
           <div className="flex items-center gap-1">
+            <motion.button
+              onClick={() => onAddServiceRecord(provider)}
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FileText size={12} />
+              记服务
+            </motion.button>
             <motion.button
               onClick={() => onAddReview(provider)}
               className="px-3 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"

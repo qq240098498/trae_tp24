@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import type { Provider, Review, ServiceType } from '@/types';
+import type { Provider, Review, ServiceType, ServiceRecord } from '@/types';
 import { loadFromStorage, saveToStorage, generateId } from '@/utils/storage';
-import { STORAGE_KEYS, MOCK_PROVIDERS, MOCK_REVIEWS } from '@/utils/constants';
+import { STORAGE_KEYS, MOCK_PROVIDERS, MOCK_REVIEWS, MOCK_SERVICE_RECORDS, DATA_VERSION } from '@/utils/constants';
 
 interface ProviderState {
   providers: Provider[];
   reviews: Review[];
+  serviceRecords: ServiceRecord[];
   filterType: ServiceType | 'all';
   searchQuery: string;
   sortBy: 'rating' | 'date';
@@ -18,6 +19,10 @@ interface ProviderState {
   deleteProvider: (id: string) => void;
   addReview: (providerId: string, data: Omit<Review, 'id' | 'providerId' | 'createdAt'>) => void;
   getReviewsByProvider: (providerId: string) => Review[];
+  addServiceRecord: (providerId: string, data: Omit<ServiceRecord, 'id' | 'providerId' | 'createdAt' | 'updatedAt'>) => void;
+  updateServiceRecord: (id: string, data: Partial<ServiceRecord>) => void;
+  deleteServiceRecord: (id: string) => void;
+  getServiceRecordsByProvider: (providerId: string) => ServiceRecord[];
   getFilteredProviders: () => Provider[];
   exportData: () => string;
   importData: (data: string) => boolean;
@@ -33,25 +38,46 @@ const calculateAvgRating = (reviews: Review[], providerId: string): number => {
 export const useProviderStore = create<ProviderState>((set, get) => ({
   providers: [],
   reviews: [],
+  serviceRecords: [],
   filterType: 'all',
   searchQuery: '',
   sortBy: 'rating',
 
   init: () => {
+    const storedVersion = loadFromStorage<number>(STORAGE_KEYS.VERSION, 0);
     const storedProviders = loadFromStorage<Provider[]>(STORAGE_KEYS.PROVIDERS, []);
     const storedReviews = loadFromStorage<Review[]>(STORAGE_KEYS.REVIEWS, []);
+    const storedServiceRecords = loadFromStorage<ServiceRecord[]>(STORAGE_KEYS.SERVICE_RECORDS, []);
 
-    if (storedProviders.length === 0 && storedReviews.length === 0) {
+    const shouldReset = 
+      storedVersion < DATA_VERSION ||
+      (storedProviders.length > 0 && storedServiceRecords.length === 0);
+
+    if (storedProviders.length === 0 && storedReviews.length === 0 && storedServiceRecords.length === 0) {
       set({
         providers: MOCK_PROVIDERS,
         reviews: MOCK_REVIEWS,
+        serviceRecords: MOCK_SERVICE_RECORDS,
       });
       saveToStorage(STORAGE_KEYS.PROVIDERS, MOCK_PROVIDERS);
       saveToStorage(STORAGE_KEYS.REVIEWS, MOCK_REVIEWS);
+      saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, MOCK_SERVICE_RECORDS);
+      saveToStorage(STORAGE_KEYS.VERSION, DATA_VERSION);
+    } else if (shouldReset) {
+      set({
+        providers: MOCK_PROVIDERS,
+        reviews: MOCK_REVIEWS,
+        serviceRecords: MOCK_SERVICE_RECORDS,
+      });
+      saveToStorage(STORAGE_KEYS.PROVIDERS, MOCK_PROVIDERS);
+      saveToStorage(STORAGE_KEYS.REVIEWS, MOCK_REVIEWS);
+      saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, MOCK_SERVICE_RECORDS);
+      saveToStorage(STORAGE_KEYS.VERSION, DATA_VERSION);
     } else {
       set({
         providers: storedProviders,
         reviews: storedReviews,
+        serviceRecords: storedServiceRecords,
       });
     }
   },
@@ -86,9 +112,11 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
   deleteProvider: (id) => {
     const providers = get().providers.filter((p) => p.id !== id);
     const reviews = get().reviews.filter((r) => r.providerId !== id);
-    set({ providers, reviews });
+    const serviceRecords = get().serviceRecords.filter((r) => r.providerId !== id);
+    set({ providers, reviews, serviceRecords });
     saveToStorage(STORAGE_KEYS.PROVIDERS, providers);
     saveToStorage(STORAGE_KEYS.REVIEWS, reviews);
+    saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, serviceRecords);
   },
 
   addReview: (providerId, data) => {
@@ -117,6 +145,45 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
     );
   },
 
+  addServiceRecord: (providerId, data) => {
+    const now = new Date().toISOString();
+    const newRecord: ServiceRecord = {
+      ...data,
+      id: generateId(),
+      providerId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const serviceRecords = [...get().serviceRecords, newRecord];
+    const providers = get().providers.map((p) =>
+      p.id === providerId ? { ...p, updatedAt: now } : p
+    );
+    set({ serviceRecords, providers });
+    saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, serviceRecords);
+    saveToStorage(STORAGE_KEYS.PROVIDERS, providers);
+  },
+
+  updateServiceRecord: (id, data) => {
+    const now = new Date().toISOString();
+    const serviceRecords = get().serviceRecords.map((r) =>
+      r.id === id ? { ...r, ...data, updatedAt: now } : r
+    );
+    set({ serviceRecords });
+    saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, serviceRecords);
+  },
+
+  deleteServiceRecord: (id) => {
+    const serviceRecords = get().serviceRecords.filter((r) => r.id !== id);
+    set({ serviceRecords });
+    saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, serviceRecords);
+  },
+
+  getServiceRecordsByProvider: (providerId) => {
+    return get().serviceRecords.filter((r) => r.providerId === providerId).sort(
+      (a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime()
+    );
+  },
+
   getFilteredProviders: () => {
     const { providers, filterType, searchQuery, sortBy } = get();
     let filtered = [...providers];
@@ -142,17 +209,22 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
   },
 
   exportData: () => {
-    const { providers, reviews } = get();
-    return JSON.stringify({ providers, reviews }, null, 2);
+    const { providers, reviews, serviceRecords } = get();
+    return JSON.stringify({ providers, reviews, serviceRecords }, null, 2);
   },
 
   importData: (dataStr: string) => {
     try {
       const data = JSON.parse(dataStr);
-      if (data.providers && data.reviews) {
-        set({ providers: data.providers, reviews: data.reviews });
+      if (data.providers && data.reviews && data.serviceRecords) {
+        set({
+          providers: data.providers,
+          reviews: data.reviews,
+          serviceRecords: data.serviceRecords,
+        });
         saveToStorage(STORAGE_KEYS.PROVIDERS, data.providers);
         saveToStorage(STORAGE_KEYS.REVIEWS, data.reviews);
+        saveToStorage(STORAGE_KEYS.SERVICE_RECORDS, data.serviceRecords);
         return true;
       }
     } catch (e) {

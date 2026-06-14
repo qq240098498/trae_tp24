@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Provider } from '@/types';
+import type { Provider, ServiceRecord } from '@/types';
 import { useProviderStore } from '@/store/useProviderStore';
 import { Header } from '@/components/Header';
 import { FilterBar } from '@/components/FilterBar';
@@ -7,15 +7,19 @@ import { ProviderList } from '@/components/ProviderList';
 import { ProviderForm } from '@/components/ProviderForm';
 import { ReviewForm } from '@/components/ReviewForm';
 import { DetailModal } from '@/components/DetailModal';
+import { ServiceRecordForm } from '@/components/ServiceRecordForm';
 
 export default function Home() {
   const { init } = useProviderStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isServiceRecordOpen, setIsServiceRecordOpen] = useState(false);
   const [editProvider, setEditProvider] = useState<Provider | null>(null);
   const [reviewProvider, setReviewProvider] = useState<Provider | null>(null);
   const [detailProvider, setDetailProvider] = useState<Provider | null>(null);
+  const [serviceRecordProvider, setServiceRecordProvider] = useState<Provider | null>(null);
+  const [editServiceRecord, setEditServiceRecord] = useState<ServiceRecord | null>(null);
 
   useEffect(() => {
     init();
@@ -43,6 +47,29 @@ export default function Home() {
     setIsDetailOpen(true);
   };
 
+  const handleAddServiceRecord = (provider: Provider) => {
+    setServiceRecordProvider(provider);
+    setEditServiceRecord(null);
+    setIsServiceRecordOpen(true);
+    setIsDetailOpen(false);
+  };
+
+  const handleEditServiceRecord = (record: ServiceRecord) => {
+    const provider = useProviderStore.getState().providers.find((p) => p.id === record.providerId);
+    if (provider) {
+      setServiceRecordProvider(provider);
+      setEditServiceRecord(record);
+      setIsServiceRecordOpen(true);
+      setIsDetailOpen(false);
+    }
+  };
+
+  const handleServiceRecordClick = (provider: Provider) => {
+    setServiceRecordProvider(provider);
+    setEditServiceRecord(null);
+    setIsServiceRecordOpen(true);
+  };
+
   return (
     <div className="min-h-screen">
       <Header onAddClick={handleAddClick} />
@@ -53,6 +80,7 @@ export default function Home() {
           onViewDetail={handleViewDetail}
           onEdit={handleEditClick}
           onAddReview={handleReviewClick}
+          onAddServiceRecord={handleServiceRecordClick}
         />
       </main>
 
@@ -83,6 +111,19 @@ export default function Home() {
         provider={detailProvider}
         onEdit={handleEditClick}
         onAddReview={handleReviewClick}
+        onAddServiceRecord={handleAddServiceRecord}
+        onEditServiceRecord={handleEditServiceRecord}
+      />
+
+      <ServiceRecordForm
+        isOpen={isServiceRecordOpen}
+        onClose={() => {
+          setIsServiceRecordOpen(false);
+          setServiceRecordProvider(null);
+          setEditServiceRecord(null);
+        }}
+        provider={serviceRecordProvider}
+        editRecord={editServiceRecord}
       />
     </div>
   );

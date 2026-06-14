@@ -8,9 +8,15 @@ interface ProviderListProps {
   onViewDetail: (provider: Provider) => void;
   onEdit: (provider: Provider) => void;
   onAddReview: (provider: Provider) => void;
+  onAddServiceRecord: (provider: Provider) => void;
 }
 
-export const ProviderList = ({ onViewDetail, onEdit, onAddReview }: ProviderListProps) => {
+export const ProviderList = ({
+  onViewDetail,
+  onEdit,
+  onAddReview,
+  onAddServiceRecord,
+}: ProviderListProps) => {
   const { getFilteredProviders } = useProviderStore();
   const providers = getFilteredProviders();
 
@@ -43,6 +49,7 @@ export const ProviderList = ({ onViewDetail, onEdit, onAddReview }: ProviderList
             onViewDetail={onViewDetail}
             onEdit={onEdit}
             onAddReview={onAddReview}
+            onAddServiceRecord={onAddServiceRecord}
             index={index}
           />
         ))}
